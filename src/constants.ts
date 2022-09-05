@@ -1,0 +1,1 @@
+export const TG_LISTENER = 'nestjs-telegram:listener';
