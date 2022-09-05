@@ -2,9 +2,11 @@
   "name": "telegram-nestjs",
   "version": "0.0.1",
   "description": "Library for working with telegram in nest",
-  "main": "./src/index.ts",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "tsc"
   },
   "repository": {
     "type": "git",
