@@ -1,12 +1,16 @@
 {
   "name": "telegram-nestjs",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Library for working with telegram in nest",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
   "scripts": {
+    "prepare": "tsc",
     "build": "tsc"
   },
+  "files": [
+    "dist/**/*"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TBAPRUS/telegram-nestjs.git"
