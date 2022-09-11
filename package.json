@@ -1,6 +1,6 @@
 {
   "name": "telegram-nestjs",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Library for working with telegram in nest",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",

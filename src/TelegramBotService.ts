@@ -1,20 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import TelegramBot from 'node-telegram-bot-api';
-import { ICommandListener } from './listeners/CommandListener';
-import { IRegExpListener } from './listeners/RegExpListener';
+import { SortedList } from './utils/SortedList';
+import { CommandListener } from './listeners/CommandListener';
+import { RegExpListener } from './listeners/RegExpListener';
+import { TextListener } from './listeners/TextListener';
 
 @Injectable()
 export class TelegramBotService {
   private bot: TelegramBot | null;
   private waiters: ((bot: TelegramBot) => void)[];
-  private commandListeners: ICommandListener[];
-  private regexpListeners: IRegExpListener[];
+  private commandListeners: SortedList<CommandListener>;
+  private regexpListeners: SortedList<RegExpListener>;
+  private textListeners: SortedList<TextListener>;
 
   constructor () {
     this.bot = null;
     this.waiters = [];
-    this.commandListeners = [];
-    this.regexpListeners = [];
+    this.commandListeners = new SortedList();
+    this.regexpListeners = new SortedList();
+    this.textListeners = new SortedList();
   }
 
   public initBot (token: string) {
@@ -30,18 +34,25 @@ export class TelegramBotService {
     });
   }
 
-  public addCommandListener (listener: ICommandListener, instance: object) {
+  public addCommandListener (listener: CommandListener, instance: object) {
     if (!this.bot) throw new Error('Invalid adding command listener. You should init bot.');
     listener.setBot(this.bot);
     listener.setInstance(instance);
-    this.commandListeners.push(listener);
+    this.commandListeners.add(listener.getImportance(), listener);
   }
 
-  public addRegExpListener (listener: ICommandListener, instance: object) {
+  public addRegExpListener (listener: RegExpListener, instance: object) {
     if (!this.bot) throw new Error('Invalid adding regexp listener. You should init bot.');
     listener.setBot(this.bot);
     listener.setInstance(instance);
-    this.regexpListeners.push(listener);
+    this.regexpListeners.add(listener.getImportance(), listener);
+  }
+
+  public addTextListener (listener: TextListener, instance: object) {
+    if (!this.bot) throw new Error('Invalid adding text listener. You should init bot.');
+    listener.setBot(this.bot);
+    listener.setInstance(instance);
+    this.textListeners.add(listener.getImportance(), listener);
   }
 
   private triggerWaiters () {
@@ -59,12 +70,17 @@ export class TelegramBotService {
     if (!this.bot) return;
 
     this.bot.addListener('text', (message) => {
-      for (const listener of this.commandListeners) {
+      for (const listener of this.textListeners.list()) {
         const isValid = listener.checkIfValidate(message);
         if (isValid) return listener.resolve(message);
       }
 
-      for (const listener of this.regexpListeners) {
+      for (const listener of this.commandListeners.list()) {
+        const isValid = listener.checkIfValidate(message);
+        if (isValid) return listener.resolve(message);
+      }
+
+      for (const listener of this.regexpListeners.list()) {
         const isValid = listener.checkIfValidate(message);
         if (isValid) return listener.resolve(message);
       }

@@ -1,9 +1,5 @@
 import TelegramBot, { Message } from 'node-telegram-bot-api';
-import { AbstractListener } from './AbstractListener';
-
-export interface IRegExpListener extends AbstractListener {
-  resolve(message: Message): void
-}
+import { AbstractListener, GeneralResolver } from './AbstractListener';
 
 type Config = {
   regexp: RegExp
@@ -11,13 +7,13 @@ type Config = {
 
 type Resolver = (bot: TelegramBot, message: Message) => any
 
-export class RegExpListener extends AbstractListener implements IRegExpListener {
+export class RegExpListener extends AbstractListener<GeneralResolver> {
   constructor (
-    private config: Config,
-    private resolver: Resolver
+    resolver: Resolver,
+    importance: number,
+    private config: Config
   ) {
-    super();
-    this.resolve = this.resolve.bind(this);
+    super(resolver, importance);
   }
 
   public checkIfValidate (message: Message) {
@@ -26,18 +22,9 @@ export class RegExpListener extends AbstractListener implements IRegExpListener 
     const bot = this.getBot();
     const instance = this.getInstance();
 
-    if (!text || !searchRegExp || !this.resolver || !bot || !instance) return false;
+    if (!text || !searchRegExp || !bot || !instance) return false;
 
     const isDesiredRegExp = searchRegExp.test(text);
     return isDesiredRegExp;
-  }
-
-  public resolve (message: Message) {
-    const bot = this.getBot();
-    const instance = this.getInstance();
-    if (!bot) throw new Error('Invalid bot. You should set bot.');
-    if (!instance) throw new Error('Invalid instance. You should set instance.');
-
-    this.resolver.call(instance, bot, message);
   }
 }

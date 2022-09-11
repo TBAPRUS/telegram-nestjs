@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { MetadataScanner, ModuleRef } from '@nestjs/core';
 import { TG_LISTENER } from './constants';
 import { TelegramBotService } from './TelegramBotService';
-import { CommandListener, IListener } from './listeners';
+import { CommandListener, TextListener } from './listeners';
 import { RegExpListener } from './listeners/RegExpListener';
 
 @Injectable()
@@ -27,7 +27,7 @@ export class TelegramRegisterService {
   
       const methods = this.getMethods(instance, instancePrototype);
       for (const method of methods) {
-        const listener: IListener = Reflect.getMetadata(TG_LISTENER, method);
+        const listener = Reflect.getMetadata(TG_LISTENER, method);
   
         if (!listener) continue;
   
@@ -35,8 +35,14 @@ export class TelegramRegisterService {
           this.telegramBotService.addCommandListener(listener, instance);
           continue;
         }
+
         if (listener instanceof RegExpListener) {
           this.telegramBotService.addRegExpListener(listener, instance);
+          continue;
+        }
+
+        if (listener instanceof TextListener) {
+          this.telegramBotService.addTextListener(listener, instance);
           continue;
         }
       }
